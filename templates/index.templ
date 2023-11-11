@@ -1,27 +1,51 @@
 package templates
 
-templ Index(name string) {
+import "test/models"
+import "fmt"
+
+templ Index(name string, todos []models.Todo) {
 	<html>
 		<head>
+			<title>Todo App</title>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta charset="UTF-8"/>
+			<meta name="description" content="Todo App, powered by Golang, Templ, TailwindCSS and HTMX"/>
 			<link rel="stylesheet" href="/style.css"/>
+			<script src="https://unpkg.com/htmx.org@1.9.8"></script>
 		</head>
-		<body class="bg-black text-white">
-			<div class=" text-white">Hello, { name }</div>
-			<input type="text" value="" class="text-black"/>
-			<button class="rounded-md px-2 py-1 bg-blue-400 text-zinc-900">Add Todo</button>
-			<ul>
-				@Todo("Buy milk")
-				@Todo("Buy eggs")
-			</ul>
+		<body class="bg-black text-white ">
+			<div class="container mx-auto flex flex-col gap-4">
+				<div class="text-white">Hello, { name }</div>
+				<form hx-post="/">
+					<input type="text" value="" class="w-fit text-black"/>
+					<button class="rounded-md w-fit px-2 py-1 bg-blue-400 text-zinc-900">Add Todo</button>
+				</form>
+				<ul class="space-y-2">
+					for _, todo := range todos {
+						@Todo(todo)
+					}
+				</ul>
+			</div>
 		</body>
 	</html>
 }
 
-templ Todo(content string) {
-	<div class="flex gap-4">
-		<input type="checkbox"/>
-		<li class="text-zinc-50">{ content }</li>
-		<button class="rounded-md px-2 py-1 bg-zinc-50 text-zinc-900">Edit</button>
-		<button class="rounded-md px-2 py-1 bg-zinc-50 text-zinc-900">Delete</button>
+templ Todo(todo models.Todo) {
+	<div class="flex gap-4 items-center">
+		<div class="flex gap-4 items-center">
+			// replace input + li to EditTodo when click "edit"
+			<input type="checkbox"/>
+			<li class="text-zinc-50">{ todo.Content }</li>
+			// the button's text become "save" when editing, and "edit" when idle
+			<button hx-get={ fmt.Sprintf("/edit/%d", todo.ID) } hx-target="previous li" class="rounded-md px-2 py-1 bg-zinc-50 text-zinc-900" hx-swap="innerHTML">Edit</button>
+		</div>
+		<button hx-delete={ fmt.Sprintf("/delete/%d", todo.ID) } class="rounded-md px-2 py-1 bg-zinc-50 text-zinc-900">Delete</button>
 	</div>
+}
+
+templ EditTodo(todo models.Todo) {
+	<form hx-post={ fmt.Sprintf("/edit/%d", todo.ID) } hx-trigger="form">
+		<input type="text" value={ todo.Content }/>
+		<button hx-get={ fmt.Sprintf("/save/%d", todo.ID) } hx-target="previous li" class="rounded-md px-2 py-1 bg-zinc-50 text-zinc-900" hx-swap="innerHTML">Save</button>
+	</form>
 }

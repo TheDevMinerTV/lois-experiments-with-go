@@ -1,80 +1,121 @@
 package main
 
 import (
-	"context"
 	_ "embed"
 	"fmt"
 	"net/http"
 	"os"
+	"test/models"
 	"test/templates"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 //go:embed style.css
-var Styles string
+var Styles []byte
 
-var SomeGlobal = "lol"
+var Todos = []models.Todo{
+	{
+		ID:      1,
+		Content: "Buy milk",
+	},
+	{
+		ID:      2,
+		Content: "Buy eggs",
+	},
+	{
+		ID:      3,
+		Content: "Buy bread",
+	},
+	{
+		ID:      4,
+		Content: "Buy jam",
+	},
+}
 
-const YourName = "lois"
+func getTodoByID(route string, id string) *models.Todo {
+	for _, t := range Todos {
+		if fmt.Sprintf("%d", t.ID) == id {
+			return &t
+		}
+	}
+
+	return nil
+}
 
 func main() {
-	fmt.Println("Hello World!")
+	app := fiber.New()
 
-	// var lois *Person = NewPerson("lois")
-	lois := NewPerson("lois")
-
-	lois.privateParts = append(lois.privateParts, "lol")
-
-	rnd1, ok := lois.Random["laptop"]
-	if !ok {
-		fmt.Println("didn't find a laptop 1")
-	} else {
-		fmt.Println("Laptop has", rnd1)
-	}
-
-	lois.Random["laptop"] = 0
-
-	rnd1, ok = lois.Random["laptop"]
-	if !ok {
-		fmt.Println("didn't find a laptop 2")
-	} else {
-		fmt.Println("Laptop has", rnd1)
-	}
-
-	http.HandleFunc("/style.css", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(Styles))
+	app.Get("/", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/html")
+		return templates.Index("Lois", Todos).Render(c.UserContext(), c)
 	})
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// fmt.Fprint(w, "Hello world")
-
-		templates.Index("Lois").Render(context.Background(), w)
+	app.Get("/style.css", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/css")
+		return c.Send(Styles)
 	})
 
-	//var err error
-	err := http.ListenAndServe(":80", nil)
-	if err != nil {
+	// /edit/:id
+	app.Get("/edit/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id", "-1")
+		todo := getTodoByID("/edit/:id", id)
+		if todo == nil {
+			c.Status(http.StatusNotFound)
+			// TODO: templ
+			c.Set("Content-Type", "text/html")
+			return c.SendString("<b>Not found</b>")
+		}
+
+		c.Set("Content-Type", "text/html")
+		return templates.EditTodo(*todo).Render(c.UserContext(), c)
+	})
+
+	app.Get("/save/", func(c *fiber.Ctx) error {
+		id := c.Params("id", "-1")
+		todo := getTodoByID("/save/:id", id)
+		if todo == nil {
+			c.Status(http.StatusNotFound)
+			// TODO: templ
+			c.Set("Content-Type", "text/html")
+			return c.SendString("<b>Not found</b>")
+		}
+
+		c.Set("Content-Type", "text/html")
+		return templates.Todo(*todo).Render(c.UserContext(), c)
+	})
+
+	app.Delete("/delete/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id", "-1")
+		todo := getTodoByID("/delete/:id", id)
+		if todo == nil {
+			c.Status(http.StatusNotFound)
+			c.Set("Content-Type", "text/html")
+			return c.SendString("<b>Not found</b>")
+		}
+
+		// FIXME: replace with SQL
+		// "DELETE FROM todo WHERE ID = ?"
+		var newTodos []models.Todo
+		for _, t := range Todos {
+			if t.ID != todo.ID {
+				newTodos = append(newTodos, t)
+			}
+		}
+		Todos = newTodos
+
+		return refreshHtmx(c)
+	})
+
+	fmt.Println("Listening on port 80")
+	if err := app.Listen(":80"); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
 
-// class Person { public Name: string; private privateParts: string[] }
-type Person struct {
-	Name         string
-	Age          int
-	Savings      []int64
-	privateParts []string
-	Random       map[string]int
-	ComplexStuff complex128 // used for 3d renderng for co
-}
-
-func NewPerson(name string) *Person {
-	complexStuff := complex(12, 0)
-
-	return &Person{
-		Name:         name,
-		privateParts: make([]string, 0),
-		ComplexStuff: complexStuff,
-		Random:       make(map[string]int),
-	}
+// https://htmx.org/docs/#response-headers
+func refreshHtmx(c *fiber.Ctx) error {
+	c.Set("HX-Refresh", "true")
+	return c.Send(nil)
 }

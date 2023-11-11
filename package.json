@@ -5,9 +5,10 @@
   "main": "index.js",
   "packageManager": "pnpm@8.10.2",
   "scripts": {
-    "dev": "concurrently \"pnpm run dev:css\" \"npm run dev:go\"",
+    "dev": "concurrently \"pnpm run dev:css\" \"pnpm run dev:go\" \"pnpm run dev:templates\"",
     "dev:css": "tailwindcss -i tailwind.css -o style.css --watch",
-    "dev:go": "nodemon --signal SIGTERM --watch '*/**' --ext go,css,templ --exec \"templ generate && go run main.go\""
+    "dev:go": "nodemon --signal SIGTERM --watch '*/**' --ext go,css --exec \"go run main.go\"",
+    "dev:templates": "nodemon --signal SIGTERM --watch '*/**' --ext templ --exec \"templ generate\""
   },
   "keywords": [],
   "author": "",
