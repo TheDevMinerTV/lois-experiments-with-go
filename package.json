@@ -6,7 +6,7 @@
   "packageManager": "pnpm@8.10.2",
   "scripts": {
     "dev": "concurrently \"pnpm run dev:css\" \"npm run dev:go\"",
-    "dev:css": "tailwindcss -i tailwind.css -o style.css",
+    "dev:css": "tailwindcss -i tailwind.css -o style.css --watch",
     "dev:go": "nodemon --signal SIGTERM --watch '*/**' --ext go,css,templ --exec \"templ generate && go run main.go\""
   },
   "keywords": [],
