@@ -14,33 +14,23 @@ import (
 //go:embed style.css
 var Styles []byte
 
-var Todos = []models.Todo{
-	{
+var Todos = map[int]models.Todo{
+	1: {
 		ID:      1,
 		Content: "Buy milk",
 	},
-	{
+	2: {
 		ID:      2,
 		Content: "Buy eggs",
 	},
-	{
+	3: {
 		ID:      3,
 		Content: "Buy bread",
 	},
-	{
+	4: {
 		ID:      4,
 		Content: "Buy jam",
 	},
-}
-
-func getTodoByID(route string, id string) *models.Todo {
-	for _, t := range Todos {
-		if fmt.Sprintf("%d", t.ID) == id {
-			return &t
-		}
-	}
-
-	return nil
 }
 
 func main() {
@@ -58,9 +48,13 @@ func main() {
 
 	// /edit/:id
 	app.Get("/edit/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id", "-1")
-		todo := getTodoByID("/edit/:id", id)
-		if todo == nil {
+		id, err := c.ParamsInt("id", -1)
+		if err != nil {
+			return c.SendStatus(http.StatusBadRequest)
+		}
+
+		todo, ok := Todos[id]
+		if !ok {
 			c.Status(http.StatusNotFound)
 			// TODO: templ
 			c.Set("Content-Type", "text/html")
@@ -68,27 +62,54 @@ func main() {
 		}
 
 		c.Set("Content-Type", "text/html")
-		return templates.EditTodo(*todo).Render(c.UserContext(), c)
+		return templates.EditTodo(todo).Render(c.UserContext(), c)
+	})
+	app.Post("/edit/:id", func(c *fiber.Ctx) error {
+		id, err := c.ParamsInt("id", -1)
+		if err != nil {
+			return c.SendStatus(http.StatusBadRequest)
+		}
+
+		todo, ok := Todos[id]
+		if !ok {
+			c.Status(http.StatusNotFound)
+			// TODO: templ
+			c.Set("Content-Type", "text/html")
+			return c.SendString("<b>Not found</b>")
+		}
+
+		content := c.FormValue("content")
+
+		Todos[id] = models.Todo{
+			ID:      todo.ID,
+			Content: content,
+		}
+
+		return refreshHtmx(c)
 	})
 
-	app.Get("/save/", func(c *fiber.Ctx) error {
-		id := c.Params("id", "-1")
-		todo := getTodoByID("/save/:id", id)
-		if todo == nil {
-			c.Status(http.StatusNotFound)
-			// TODO: templ
-			c.Set("Content-Type", "text/html")
-			return c.SendString("<b>Not found</b>")
+	app.Post("/add/", func(c *fiber.Ctx) error {
+		content := c.FormValue("content")
+
+		// "INSERT INTO todo (content) VALUES (?)"
+		// pls database
+		id := len(Todos) + 1
+		Todos[id] = models.Todo{
+			ID:      id,
+			Content: content,
 		}
 
-		c.Set("Content-Type", "text/html")
-		return templates.Todo(*todo).Render(c.UserContext(), c)
+		return refreshHtmx(c)
 	})
 
 	app.Delete("/delete/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id", "-1")
-		todo := getTodoByID("/delete/:id", id)
-		if todo == nil {
+		id, err := c.ParamsInt("id", -1)
+		if err != nil {
+			return c.SendStatus(http.StatusBadRequest)
+		}
+
+		todo, ok := Todos[id]
+		if !ok {
 			c.Status(http.StatusNotFound)
 			c.Set("Content-Type", "text/html")
 			return c.SendString("<b>Not found</b>")
@@ -96,10 +117,10 @@ func main() {
 
 		// FIXME: replace with SQL
 		// "DELETE FROM todo WHERE ID = ?"
-		var newTodos []models.Todo
-		for _, t := range Todos {
-			if t.ID != todo.ID {
-				newTodos = append(newTodos, t)
+		var newTodos = make(map[int]models.Todo)
+		for k, v := range Todos {
+			if k != todo.ID {
+				newTodos[k] = v
 			}
 		}
 		Todos = newTodos

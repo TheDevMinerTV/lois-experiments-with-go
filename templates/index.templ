@@ -3,7 +3,7 @@ package templates
 import "test/models"
 import "fmt"
 
-templ Index(name string, todos []models.Todo) {
+templ Index(name string, todos map[int]models.Todo) {
 	<html>
 		<head>
 			<title>Todo App</title>
@@ -16,8 +16,9 @@ templ Index(name string, todos []models.Todo) {
 		<body class="bg-black text-white ">
 			<div class="container mx-auto flex flex-col gap-4">
 				<div class="text-white">Hello, { name }</div>
-				<form hx-post="/">
-					<input type="text" value="" class="w-fit text-black"/>
+				// Works
+				<form hx-post="/add">
+					<input type="text" value="" name="content" class="w-fit text-black"/>
 					<button class="rounded-md w-fit px-2 py-1 bg-blue-400 text-zinc-900">Add Todo</button>
 				</form>
 				<ul class="space-y-2">
@@ -32,20 +33,20 @@ templ Index(name string, todos []models.Todo) {
 
 templ Todo(todo models.Todo) {
 	<div class="flex gap-4 items-center">
-		<div class="flex gap-4 items-center">
+		<div class="flex gap-4 items-center" id="display">
 			// replace input + li to EditTodo when click "edit"
 			<input type="checkbox"/>
 			<li class="text-zinc-50">{ todo.Content }</li>
 			// the button's text become "save" when editing, and "edit" when idle
-			<button hx-get={ fmt.Sprintf("/edit/%d", todo.ID) } hx-target="previous li" class="rounded-md px-2 py-1 bg-zinc-50 text-zinc-900" hx-swap="innerHTML">Edit</button>
+			<button hx-get={ fmt.Sprintf("/edit/%d", todo.ID) } hx-target="closest div" class="rounded-md px-2 py-1 bg-zinc-50 text-zinc-900" hx-swap="innerHTML">Edit</button>
+			<button hx-delete={ fmt.Sprintf("/delete/%d", todo.ID) } class="rounded-md px-2 py-1 bg-zinc-50 text-zinc-900">Delete</button>
 		</div>
-		<button hx-delete={ fmt.Sprintf("/delete/%d", todo.ID) } class="rounded-md px-2 py-1 bg-zinc-50 text-zinc-900">Delete</button>
 	</div>
 }
 
 templ EditTodo(todo models.Todo) {
 	<form hx-post={ fmt.Sprintf("/edit/%d", todo.ID) } hx-trigger="form">
-		<input type="text" value={ todo.Content }/>
+		<input type="text" value={ todo.Content } class="text-zinc-900" name="content"/>
 		<button hx-get={ fmt.Sprintf("/save/%d", todo.ID) } hx-target="previous li" class="rounded-md px-2 py-1 bg-zinc-50 text-zinc-900" hx-swap="innerHTML">Save</button>
 	</form>
 }
