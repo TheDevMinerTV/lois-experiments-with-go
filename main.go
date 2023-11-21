@@ -40,7 +40,12 @@ func main() {
 	User := os.Getenv("POSTGRES_USER")
 	DbName := os.Getenv("POSTGRES_DB")
 	Password := os.Getenv("POSTGRES_PASSWORD")
-	Connection := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s", Host, Port, User, DbName, Password)
+	//DBUrl := os.Getenv("DATABASE_URL")
+
+	// current error: querying server version pq: password authentication failed for user "dbname=postgres"
+	Connection := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", Host, Port, User, DbName, Password)
+
+	fmt.Println(Password)
 
 	client, err := ent.Open("postgres", Connection)
 
@@ -50,6 +55,7 @@ func main() {
 	}
 	defer client.Close()
 
+	// This is for schema migration
 	if err := client.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}

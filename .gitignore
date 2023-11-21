@@ -3,3 +3,4 @@ node_modules
 /test
 style.css
 templates/*_templ.go
+env.sh
