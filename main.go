@@ -9,6 +9,7 @@ import (
 	"test/ent"
 	"test/models"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -35,6 +36,12 @@ var Todos = map[int]models.Todo{
 }
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	Host := os.Getenv("POSTGRES_HOST")
 	Port := os.Getenv("POSTGRES_PORT")
 	User := os.Getenv("POSTGRES_USER")
