@@ -40,12 +40,11 @@ func main() {
 	User := os.Getenv("POSTGRES_USER")
 	DbName := os.Getenv("POSTGRES_DB")
 	Password := os.Getenv("POSTGRES_PASSWORD")
-	//DBUrl := os.Getenv("DATABASE_URL")
+	// DBUrl := os.Getenv("DATABASE_URL")
 
-	// current error: querying server version pq: password authentication failed for user "dbname=postgres"
 	Connection := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", Host, Port, User, DbName, Password)
 
-	fmt.Println(Password)
+	// fmt.Println(Password)
 
 	client, err := ent.Open("postgres", Connection)
 
@@ -54,6 +53,8 @@ func main() {
 
 	}
 	defer client.Close()
+
+	fmt.Println("Connected to database") // it hit here and : querying server version pq: SSL is not enabled on the server
 
 	// This is for schema migration
 	if err := client.Schema.Create(context.Background()); err != nil {
