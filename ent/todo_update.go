@@ -76,6 +76,14 @@ func (tu *TodoUpdate) SetUpdatedAt(t time.Time) *TodoUpdate {
 	return tu
 }
 
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (tu *TodoUpdate) SetNillableUpdatedAt(t *time.Time) *TodoUpdate {
+	if t != nil {
+		tu.SetUpdatedAt(*t)
+	}
+	return tu
+}
+
 // Mutation returns the TodoMutation object of the builder.
 func (tu *TodoUpdate) Mutation() *TodoMutation {
 	return tu.mutation
@@ -83,7 +91,6 @@ func (tu *TodoUpdate) Mutation() *TodoMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TodoUpdate) Save(ctx context.Context) (int, error) {
-	tu.defaults()
 	return withHooks(ctx, tu.sqlSave, tu.mutation, tu.hooks)
 }
 
@@ -106,14 +113,6 @@ func (tu *TodoUpdate) Exec(ctx context.Context) error {
 func (tu *TodoUpdate) ExecX(ctx context.Context) {
 	if err := tu.Exec(ctx); err != nil {
 		panic(err)
-	}
-}
-
-// defaults sets the default values of the builder before save.
-func (tu *TodoUpdate) defaults() {
-	if _, ok := tu.mutation.UpdatedAt(); !ok {
-		v := todo.UpdateDefaultUpdatedAt()
-		tu.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -206,6 +205,14 @@ func (tuo *TodoUpdateOne) SetUpdatedAt(t time.Time) *TodoUpdateOne {
 	return tuo
 }
 
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (tuo *TodoUpdateOne) SetNillableUpdatedAt(t *time.Time) *TodoUpdateOne {
+	if t != nil {
+		tuo.SetUpdatedAt(*t)
+	}
+	return tuo
+}
+
 // Mutation returns the TodoMutation object of the builder.
 func (tuo *TodoUpdateOne) Mutation() *TodoMutation {
 	return tuo.mutation
@@ -226,7 +233,6 @@ func (tuo *TodoUpdateOne) Select(field string, fields ...string) *TodoUpdateOne 
 
 // Save executes the query and returns the updated Todo entity.
 func (tuo *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
-	tuo.defaults()
 	return withHooks(ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
 }
 
@@ -249,14 +255,6 @@ func (tuo *TodoUpdateOne) Exec(ctx context.Context) error {
 func (tuo *TodoUpdateOne) ExecX(ctx context.Context) {
 	if err := tuo.Exec(ctx); err != nil {
 		panic(err)
-	}
-}
-
-// defaults sets the default values of the builder before save.
-func (tuo *TodoUpdateOne) defaults() {
-	if _, ok := tuo.mutation.UpdatedAt(); !ok {
-		v := todo.UpdateDefaultUpdatedAt()
-		tuo.mutation.SetUpdatedAt(v)
 	}
 }
 

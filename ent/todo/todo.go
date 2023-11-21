@@ -3,8 +3,6 @@
 package todo
 
 import (
-	"time"
-
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -47,10 +45,6 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultDone holds the default value on creation for the "done" field.
 	DefaultDone bool
-	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
-	DefaultUpdatedAt func() time.Time
-	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
-	UpdateDefaultUpdatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the Todo queries.

@@ -8,6 +8,8 @@ import (
 	"os"
 	"test/ent"
 	"test/models"
+
+	_ "github.com/lib/pq"
 )
 
 //go:embed tailwind.css

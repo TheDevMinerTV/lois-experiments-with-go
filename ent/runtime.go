@@ -5,7 +5,6 @@ package ent
 import (
 	"test/ent/schema"
 	"test/ent/todo"
-	"time"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -18,10 +17,4 @@ func init() {
 	todoDescDone := todoFields[2].Descriptor()
 	// todo.DefaultDone holds the default value on creation for the done field.
 	todo.DefaultDone = todoDescDone.Default.(bool)
-	// todoDescUpdatedAt is the schema descriptor for updated_at field.
-	todoDescUpdatedAt := todoFields[4].Descriptor()
-	// todo.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	todo.DefaultUpdatedAt = todoDescUpdatedAt.Default.(func() time.Time)
-	// todo.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	todo.UpdateDefaultUpdatedAt = todoDescUpdatedAt.UpdateDefault.(func() time.Time)
 }

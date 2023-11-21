@@ -52,14 +52,6 @@ func (tc *TodoCreate) SetUpdatedAt(t time.Time) *TodoCreate {
 	return tc
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (tc *TodoCreate) SetNillableUpdatedAt(t *time.Time) *TodoCreate {
-	if t != nil {
-		tc.SetUpdatedAt(*t)
-	}
-	return tc
-}
-
 // SetID sets the "id" field.
 func (tc *TodoCreate) SetID(i int) *TodoCreate {
 	tc.mutation.SetID(i)
@@ -104,10 +96,6 @@ func (tc *TodoCreate) defaults() {
 	if _, ok := tc.mutation.Done(); !ok {
 		v := todo.DefaultDone
 		tc.mutation.SetDone(v)
-	}
-	if _, ok := tc.mutation.UpdatedAt(); !ok {
-		v := todo.DefaultUpdatedAt()
-		tc.mutation.SetUpdatedAt(v)
 	}
 }
 
