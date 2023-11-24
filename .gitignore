@@ -4,3 +4,4 @@ node_modules
 style.css
 templates/*_templ.go
 env.sh
+.env
